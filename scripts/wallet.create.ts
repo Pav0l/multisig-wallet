@@ -3,9 +3,11 @@ import { ethers } from "hardhat";
 async function main() {
   const wallet = ethers.Wallet.createRandom();
 
-  console.log("wallet address", wallet.address);
-  console.log("wallet mnemonic", wallet.mnemonic);
-  console.log("wallet private key", wallet.privateKey);
+  console.log({
+    "address": wallet.address,
+    "mnemonic": wallet.mnemonic,
+    "private_key": wallet.privateKey
+  })
 }
 
 main()

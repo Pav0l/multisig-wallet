@@ -1,6 +1,6 @@
 # Multisig wallet
 
-v1 of the contract deployed to Ropsten network at: [0x6aE8c2dF6A87eB44E7f9f9a5e03B7EE4088A012c](https://ropsten.etherscan.io/address/0x6ae8c2df6a87eb44e7f9f9a5e03b7ee4088a012c).
+v1 of the contract deployed to Ropsten network at: [0xefFFC131E490494cce8666e8663C5B6C106B9B99](https://ropsten.etherscan.io/address/0xefFFC131E490494cce8666e8663C5B6C106B9B99).
 
 **Wallet specification:**
 
@@ -65,7 +65,6 @@ npm run test
   - check if already exists
   - check if not null address
 - should we specify max num of owners?
-- should we have the ability to change `minNumOfSignatures`?
 
 New functions:
 

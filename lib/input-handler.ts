@@ -84,3 +84,17 @@ export async function requestTxId() {
   return { TRANSACTION_ID };
 }
 
+export async function requestMinNumOfSignatures() {
+  const { NEW_SIG_REQUIREMENT }: { NEW_SIG_REQUIREMENT: number } = await prompts({
+    type: 'number',
+    name: 'NEW_SIG_REQUIREMENT',
+    message: 'Enter minimal number of signatures a transaction requires before execution:',
+    style: 'default',
+    initial: 2,
+    min: 2,
+    float: false
+  });
+
+  return { NEW_SIG_REQUIREMENT };
+}
+

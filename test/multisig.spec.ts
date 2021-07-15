@@ -10,15 +10,16 @@ describe("Multisig", function () {
   let contract: MockMultisig;
   let one: Wallet, two: Wallet, three: Wallet, four: Wallet;
 
-  describe("contract creation", function () {
-    beforeEach(async () => {
-      MockMultisigFactory = (await ethers.getContractFactory("MockMultisig")) as MockMultisig__factory;
-      [one, two, three, four] = waffle.provider.getWallets();
-    });
+  before(async () => {
+    MockMultisigFactory = (await ethers.getContractFactory("MockMultisig")) as MockMultisig__factory;
+    [one, two, three, four] = waffle.provider.getWallets();
+  });
 
+  describe("contract creation", function () {
     it("should work", async function () {
       contract = await MockMultisigFactory.deploy(2, [one.address, two.address, three.address]);
       expect(await contract.minNumOfSignatures()).to.eql(2);
+      expect(await contract.ownersCount()).to.eql(3);
     });
 
     it("should crash on invalid inputs: `can't have duplicate owners`", async function () {
@@ -50,19 +51,12 @@ describe("Multisig", function () {
   });
 
   describe("createTransaction", function () {
-    before(async () => {
-      MockMultisigFactory = (await ethers.getContractFactory("MockMultisig")) as MockMultisig__factory;
-      [one, two, three, four] = waffle.provider.getWallets();
-    });
-
     beforeEach(async () => {
       contract = await MockMultisigFactory.deploy(2, [one.address, two.address, three.address]);
     });
 
     it("validation: can only be called by one of contract owners", async function () {
-      // wallet four will call the contract to create new tx
       const randomContractCaller = (new ethers.Contract(contract.address, MultisigContract.abi, four)) as MockMultisig;
-      // and the tx is reverted
       await expect(randomContractCaller.createTransaction(four.address, BigNumber.from(1), "0x"))
         .to.be.revertedWith("this function can be called by one of contract owners");
     });
@@ -99,21 +93,13 @@ describe("Multisig", function () {
   });
 
   describe("confirmTransaction", function () {
-
-    before(async () => {
-      MockMultisigFactory = (await ethers.getContractFactory("MockMultisig")) as MockMultisig__factory;
-      [one, two, three, four] = waffle.provider.getWallets();
-    });
-
     beforeEach(async () => {
       contract = await MockMultisigFactory.deploy(2, [one.address, two.address, three.address]);
       await contract.createTransaction(four.address, BigNumber.from(0.5e18.toString()), "0x");
     });
 
     it("validation: can only be called by one of contract owners", async function () {
-      // wallet four will call the contract to confirm first tx
       const randomContractCaller = (new ethers.Contract(contract.address, MultisigContract.abi, four)) as MockMultisig;
-      // and the tx is reverted
       await expect(randomContractCaller.confirmTransaction(0))
         .to.be.revertedWith("this function can be called by one of contract owners");
     });
@@ -157,21 +143,13 @@ describe("Multisig", function () {
   });
 
   describe("revokeTransaction", function () {
-
-    before(async () => {
-      MockMultisigFactory = (await ethers.getContractFactory("MockMultisig")) as MockMultisig__factory;
-      [one, two, three, four] = waffle.provider.getWallets();
-    });
-
     beforeEach(async () => {
       contract = await MockMultisigFactory.deploy(2, [one.address, two.address, three.address]);
       await contract.createTransaction(four.address, BigNumber.from(0.5e18.toString()), "0x");
     });
 
     it("validation: can only be called by one of contract owners", async function () {
-      // wallet four will call the contract to confirm first tx
       const randomContractCaller = (new ethers.Contract(contract.address, MultisigContract.abi, four)) as MockMultisig;
-      // and the tx is reverted
       await expect(randomContractCaller.revokeTransaction(0))
         .to.be.revertedWith("this function can be called by one of contract owners");
     });
@@ -212,13 +190,7 @@ describe("Multisig", function () {
   });
 
   describe("executeTransaction", function () {
-    before(async () => {
-      MockMultisigFactory = (await ethers.getContractFactory("MockMultisig")) as MockMultisig__factory;
-      [one, two, three, four] = waffle.provider.getWallets();
-    });
-
     beforeEach(async () => {
-      // deploy contract
       contract = await MockMultisigFactory.deploy(2, [one.address, two.address, three.address]);
 
       // deposit some Ether for gas costs
@@ -234,9 +206,7 @@ describe("Multisig", function () {
     });
 
     it("validation: can only be called by one of contract owners", async function () {
-      // wallet four will call the contract to confirm first tx
       const randomContractCaller = (new ethers.Contract(contract.address, MultisigContract.abi, four)) as MockMultisig;
-      // and the tx is reverted
       await expect(randomContractCaller.executeTransaction(0))
         .to.be.revertedWith("this function can be called by one of contract owners");
     });
@@ -276,7 +246,6 @@ describe("Multisig", function () {
       expect(transaction.executed).to.eql(false);
       expect(transaction.numOfSignatures).to.eql(2);
 
-      await contract.executeTransaction(0);
       await expect(contract.executeTransaction(0))
         .to.emit(contract, 'TransactionExecuted')
         .withArgs(one.address, 0);
@@ -287,6 +256,48 @@ describe("Multisig", function () {
 
     // TODO test:
     // - transaction that deploys other contract
-    // - re-entrancy attack
+    // - re-entrancy attack attempt
   });
+
+  describe("changeSignatureRequirement", function () {
+    beforeEach(async () => {
+      contract = await MockMultisigFactory.deploy(2, [one.address, two.address, three.address]);
+    });
+
+    it("validation: can be called only by owner", async () => {
+      const randomContractCaller = (new ethers.Contract(contract.address, MultisigContract.abi, four)) as MockMultisig;
+      await expect(randomContractCaller.changeSignatureRequirement(2))
+        .to.be.revertedWith("this function can be called by one of contract owners");
+    });
+
+    it("validation: new num of signatures cant be 0/1", async () => {
+      await expect(contract.changeSignatureRequirement(1))
+        .to.be.revertedWith("min number of signatures must be more than 1");
+      await expect(contract.changeSignatureRequirement(0))
+        .to.be.revertedWith("min number of signatures must be more than 1");
+    });
+
+    it("validation: new num of signatures cant be eql to current num of signatures", async () => {
+      await expect(contract.changeSignatureRequirement(2))
+        .to.be.revertedWith("new number of signatures is equal to current min num of signatures");
+    });
+
+    it("validation: new num of signatures must be less/eql to num of owners", async () => {
+      await expect(contract.changeSignatureRequirement(5))
+        .to.be.revertedWith("numer of owners must be more/equal than min num of signatures");
+    });
+
+    it("changes the min num of transaction signatures", async () => {
+      const newSigReq = 3;
+      let req = await contract.minNumOfSignatures();
+      expect(req).to.eql(2);
+
+      await expect(contract.changeSignatureRequirement(newSigReq))
+        .to.emit(contract, 'SignatureRequirementChanged')
+        .withArgs(one.address, newSigReq);
+
+      req = await contract.minNumOfSignatures();
+      expect(req).to.eql(newSigReq);
+    });
+  })
 });

@@ -17,9 +17,11 @@
     "wallet:setup:localhost": "npx hardhat wallet:setup --network localhost",
     "wallet:setup:hardhat": "npx hardhat wallet:setup --network hardhat",
     "docs": "npx hardhat docgen",
-    "etherscan:verify:ropsten": "npx hardhat verify --constructor-args etherscan-args.js --network ropsten 0x6aE8c2dF6A87eB44E7f9f9a5e03B7EE4088A012c"
+    "etherscan:verify:ropsten": "npx hardhat verify --constructor-args etherscan-args.js --network ropsten 0xefFFC131E490494cce8666e8663C5B6C106B9B99",
+    "tenderly:verify:ropsten": "npx hardhat tenderly:verify Multisig=0xefFFC131E490494cce8666e8663C5B6C106B9B99 --network ropsten",
+    "tenderly:push:ropsten": "npx hardhat tenderly:push Multisig=0xefFFC131E490494cce8666e8663C5B6C106B9B99 --network ropsten"
   },
-  "author": "pk",
+  "author": "Pavol Karas",
   "license": "ISC",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",

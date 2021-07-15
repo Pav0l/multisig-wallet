@@ -7,8 +7,9 @@ pragma solidity ^0.8.4;
 contract Multisig {
 
   uint8 public minNumOfSignatures;
+  uint8 public ownersCount;
 
-  mapping(address => bool) private owners;
+  mapping(address => bool) private isOwner;
   // keeps track of which txId was confirmed by which owner
   mapping(uint256 => mapping(address => bool)) public isConfirmed;
 
@@ -33,6 +34,7 @@ contract Multisig {
   event TransactionConfirmed(address indexed owner, uint256 indexed txId);
   event TransactionRevoked(address indexed owner, uint256 indexed txId);
   event TransactionExecuted(address indexed owner, uint256 indexed txId);
+  event SignatureRequirementChanged(address indexed owner, uint8 newNumOfSignatures);
 
   /// @notice Contruct constructor stores minNumOfSignatures and checks for duplicate/null address owners
   /// @param _minNumOfSignatures Minimal number of signatures required for a transaction to be executed.
@@ -45,19 +47,21 @@ contract Multisig {
 
     // specify min number of signatories -> minNumOfSignatures
     minNumOfSignatures = _minNumOfSignatures;
+
     // specify which addresses are owners of this multisig contract -> owners mapping
     for (uint256 i = 0; i < _owners.length; i++) {
       address owner = _owners[i];
 
       require(owner != address(0), "invalid owner address");
-      require(!owners[owner], "can't have duplicate owners");
+      require(!isOwner[owner], "can't have duplicate owners");
 
-      owners[owner] = true;
+      isOwner[owner] = true;
+      ownersCount++;
     }
   }
 
   modifier onlyOwner() {
-    require(owners[msg.sender], "this function can be called by one of contract owners");
+    require(isOwner[msg.sender], "this function can be called by one of contract owners");
     _;
   }
 
@@ -155,6 +159,19 @@ contract Multisig {
     require(success, "transaction execution has failed");
 
     emit TransactionExecuted(msg.sender, _txId);
+  }
+
+  function changeSignatureRequirement(uint8 _newNumOfSignatures) public onlyOwner {
+    require(_newNumOfSignatures > 1, "min number of signatures must be more than 1");
+    require(ownersCount >= _newNumOfSignatures, "numer of owners must be more/equal than min num of signatures");
+    require(
+      _newNumOfSignatures != minNumOfSignatures,
+      "new number of signatures is equal to current min num of signatures"
+    );
+
+
+    minNumOfSignatures = _newNumOfSignatures;
+    emit SignatureRequirementChanged(msg.sender, _newNumOfSignatures);
   }
 
   /// @notice Returns the number of transactions, that were created in the contract

@@ -18,7 +18,7 @@ task("wallet:setup", "Create new Wallet for multisig contract and deposit some E
 
 
 task("wallet:balance", "Prints Wallets balance in ETH")
-  .addParam("wallet", "The wallet's address")
+  .addPositionalParam("wallet", "The wallet's address")
   .setAction(async (args, hre) => {
     const balance = await hre.ethers.provider.getBalance(args.wallet);
     console.log(hre.ethers.utils.formatEther(balance), "ETH");
