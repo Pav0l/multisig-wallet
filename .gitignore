@@ -1,0 +1,19 @@
+# Editor files
+.vscode
+
+# Modules, dependencies, typechain, ...
+node_modules
+typechain
+dist
+docs
+etherscan-args.js
+
+# Hardhat files
+cache
+artifacts
+
+#Deployments & secrets
+.env
+deployment.json
+owners.json
+.tenderly
