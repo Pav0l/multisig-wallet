@@ -22,8 +22,8 @@ async function main() {
   }
 
   console.log('creating transaction...');
-  // TODO -> wait for tx confirmation by miners?
-  await contract.createTransaction(TO_ADDRESS, ethers.utils.parseEther(ETHER_VALUE), DATA);
+  const tx = await contract.createTransaction(TO_ADDRESS, ethers.utils.parseEther(ETHER_VALUE), DATA);
+  console.log(`transaction created & pending confirmation. see details for:`, tx.hash);
 }
 
 main()

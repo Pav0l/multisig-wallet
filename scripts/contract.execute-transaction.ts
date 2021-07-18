@@ -22,10 +22,12 @@ async function main() {
     ({ TRANSACTION_ID } = await requestTxId());
   }
 
+  console.log(`Executing transaction with ID:${TRANSACTION_ID}...`)
   const tx = await contract.executeTransaction(TRANSACTION_ID);
-  console.log('tx:', tx);
+  console.log('Transaction executed, waiting for confirmation...', tx.hash);
   const receipt = await tx.wait();
-  console.log('receipt:', receipt);
+  console.log('DONE!');
+  console.log(receipt);
 }
 
 main()

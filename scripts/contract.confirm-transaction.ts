@@ -26,7 +26,9 @@ async function main() {
   console.log('confirming transaction...');
 
   const tx = await contract.confirmTransaction(TRANSACTION_ID);
-  const receipt = await tx.wait();
+  console.log(`transaction sent & waiting for confirmation. see more details for:`, tx.hash);
+
+  await tx.wait();
   console.log('done!');
 }
 

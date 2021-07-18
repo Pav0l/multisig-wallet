@@ -1,15 +1,16 @@
 import { ethers } from "hardhat";
 import { Multisig } from "../typechain";
-import { getContractAddress, getSignerWallet, requestTxId } from "../lib";
+import { getContractAddress, getOwnersWallets, requestTxId } from "../lib";
 const MultisigContract = require("../artifacts/contracts/Multisig.sol/Multisig.json");
 
 
 let TRANSACTION_ID: number | null = null;
-
+const OWNER_ID = 1;
 
 async function main() {
   const contractAddress = getContractAddress();
-  const signer = getSignerWallet();
+  const ownersWallets = getOwnersWallets();
+  const signer = ownersWallets[OWNER_ID];
 
   const contract = (new ethers.Contract(contractAddress, MultisigContract.abi, signer)) as Multisig;
   contract.on("TransactionRevoked", (ev) => {

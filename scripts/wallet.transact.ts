@@ -2,8 +2,8 @@ import { ethers } from "hardhat";
 import { getOwnersWallets } from "../lib/";
 
 const owners = getOwnersWallets();
-const TO_ADDRESS = owners[1].address;
-const ETHER_VALUE = "500";
+const TO_ADDRESS = owners[2].address;
+const ETHER_VALUE = "0.2";
 
 async function main() {
   const wallet = owners[0];
@@ -15,7 +15,9 @@ async function main() {
     value: ethers.utils.parseEther(ETHER_VALUE)
   });
 
-  console.log("transaction:", tx);
+  console.log("transaction pending:", tx.hash);
+  tx.wait();
+  console.log("done!");
 }
 
 main()
